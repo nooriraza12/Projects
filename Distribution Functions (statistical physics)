@@ -1,0 +1,27 @@
+import numpy as np
+import matplotlib.pyplot as plt
+# Constants
+k_B = 8.617333262e-5  # Boltzmann constant in eV/K
+T = 1e4  # Temperature in K
+beta = 1 / (k_B * T)
+# Energy range relative to chemical potential (E - mu)
+x = np.linspace(-1, 5, 500)  # in eV
+# Distribution functions
+f_FD = 1 / (np.exp(beta * x) + 1)  # Fermi-Dirac
+f_BE = 1 / (np.exp(beta * x) - 1)  # Bose-Einstein
+f_MB = np.exp(-beta * x)           # Maxwell-Boltzmann
+# Avoid plotting singularity at x = 0 for Bose-Einstein
+f_BE[x <= 0] = np.nan
+# Plotting
+plt.figure(figsize=(8, 6))
+plt.plot(x, f_FD, label='Fermi-Dirac', linewidth=2)
+plt.plot(x, f_BE, label='Bose-Einstein', linewidth=2)
+plt.plot(x, f_MB, label='Maxwell-Boltzmann', linewidth=2)
+plt.xlabel(r'$E - \mu$ (eV)', fontsize=14)
+plt.ylabel('f(E)', fontsize=14)
+plt.title(r'Distribution Functions at $T = 10^4$ K', fontsize=16)
+plt.legend()
+plt.grid(True)
+plt.ylim(0, 1.2)
+plt.axvline(0, color='gray', linestyle='--', linewidth=1)
+plt.show()
