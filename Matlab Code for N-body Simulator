@@ -1,0 +1,94 @@
+% N-body Simulation with Static Plot + Animation (no trails)
+clc; clear; close all;
+
+% --- Simulation Parameters ---
+k = 4;                          % number of bodies
+G = 6.67e-6;                    % Gravitational constant
+dt = 0.001;                     % timestep
+total_time = 5;                 
+n = round(total_time/dt);       % number of timesteps
+
+% --- Initial Positions ---
+x = zeros(k, n);
+y = zeros(k, n);
+
+x(:,1) = [0, 0, 1, 1];  % initial x
+y(:,1) = [0, 1, 0, 1];  % initial y
+
+% --- Initial Velocities ---
+vx = zeros(k, n);
+vy = zeros(k, n);
+
+vx(:,1) = [0, 0.1, 0, 0];
+vy(:,1) = [0, 0, 0.1, -0.1];
+
+% --- Masses ---
+m = [100000, 1, 1, 1]';
+
+% --- Main Simulation Loop ---
+for step = 1:n-1
+    ax = zeros(k,1);
+    ay = zeros(k,1);
+
+    for i = 1:k
+        for j = 1:k
+            if i ~= j
+                dx = x(j,step) - x(i,step);
+                dy = y(j,step) - y(i,step);
+                dist = sqrt(dx^2 + dy^2) + 1e-6; % softening
+                F = G * m(j) / (dist^3);
+                ax(i) = ax(i) + F * dx;
+                ay(i) = ay(i) + F * dy;
+            end
+        end
+    end
+
+    % Update velocities and positions
+    vx(:,step+1) = vx(:,step) + ax * dt;
+    vy(:,step+1) = vy(:,step) + ay * dt;
+    x(:,step+1) = x(:,step) + vx(:,step+1) * dt;
+    y(:,step+1) = y(:,step) + vy(:,step+1) * dt;
+end
+
+time = (0:n-1)*dt;
+
+%% --- 1) Static 3D trajectory plot ---
+figure;
+hold on;
+for i = 1:k
+    plot3(x(i,:), y(i,:), time, 'LineWidth', 1.2, ...
+        'DisplayName', ['Particle ' num2str(i)]);
+end
+xlabel('x'); ylabel('y'); zlabel('time');
+title('3D Particle Trajectories');
+grid on; legend;
+
+%% --- 2) 2D Animation (only moving dots, no trails) ---
+figure;
+hold on;
+colors = lines(k);
+h = gobjects(k,1);
+
+% Initialize moving particles
+for i = 1:k
+    h(i) = plot(x(i,1), y(i,1), 'o', ...
+        'MarkerSize', 8, ...
+        'MarkerFaceColor', colors(i,:), ...
+        'MarkerEdgeColor', colors(i,:), ...
+        'DisplayName', ['Particle ' num2str(i)]);
+end
+
+axis equal;
+xlim([min(x(:))-0.5, max(x(:))+0.5]);
+ylim([min(y(:))-0.5, max(y(:))+0.5]);
+xlabel('x'); ylabel('y');
+title('N-body Animation');
+legend; grid on;
+
+% Animate
+for step = 1:10:n   % skip steps for speed
+    for i = 1:k
+        set(h(i), 'XData', x(i,step), 'YData', y(i,step));
+    end
+    drawnow;
+end
